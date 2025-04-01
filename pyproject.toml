@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tstosbtp"
+version = "0.0.1"
+authors = [
+  { name="al1sant0s", email="cnctalissonsantos@gmail.com" },
+]
+description = "Convert textpool files to xml files for 'The Simpsons: Tapped Out'."
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.scripts]
+tstosbtp = "tstosbtp.tools.convert:main"
+
+[project.urls]
+Homepage = "https://github.com/al1sant0s/tstosbtp"
+Issues = "https://github.com/al1sant0s/tstosbtp/issues"
