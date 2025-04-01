@@ -128,6 +128,13 @@ def main():
                 with open(file, "rb") as f:
                     root = ET.fromstring(f.read().decode("utf8"))
 
+                    # If this xml file is not valid.
+                    if root.tag != "sbtp":
+                        print(
+                            f"[!] Warning! The file {file.name} is not a eligible xml file for conversion."
+                        )
+                        continue
+
                     newfile = Path(file.parent, file.stem + f".{ext[1]}")
 
                     with open(newfile, "wb") as f:
