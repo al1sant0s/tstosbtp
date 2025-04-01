@@ -125,8 +125,8 @@ def main():
                     os.remove(file)
 
             else:
-                with open(file, "r") as f:
-                    root = ET.fromstring(f.read())
+                with open(file, "rb") as f:
+                    root = ET.fromstring(f.read().decode("utf8"))
 
                     newfile = Path(file.parent, file.stem + f".{ext[1]}")
 
