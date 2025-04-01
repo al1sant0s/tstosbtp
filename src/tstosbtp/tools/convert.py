@@ -117,12 +117,13 @@ def main():
                             Path(file.parent, file.stem + ".xml"), encoding="utf8"
                         )
 
-                        # Only keep original files if requested.
-                        if args.keep is False:
-                            os.remove(file)
-
                     else:
                         continue
+
+                # Only keep original files if requested.
+                if args.keep is False:
+                    os.remove(file)
+
             else:
                 with open(file, "r") as f:
                     root = ET.fromstring(f.read())
