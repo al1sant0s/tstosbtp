@@ -63,7 +63,7 @@ def main():
 
     # Get total of files to convert.
     total = sum(
-        [len(list(Path(directory).glob(f"*.{ext[0]}"))) for directory in directories]
+        [len(list(Path(directory).glob(f"**/*.{ext[0]}"))) for directory in directories]
     )
 
     if total == 0:
@@ -79,7 +79,7 @@ def main():
 
     for directory in directories:
         # Process the files.
-        for file in directory.glob(f"*.{ext[0]}"):
+        for file in directory.glob(f"**/*.{ext[0]}"):
             if args.reverse is False:
                 with open(file, "rb") as f:
                     if f.read(6) == b"\x53\x42\x54\x50\x01\x00":

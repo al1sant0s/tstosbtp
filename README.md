@@ -60,6 +60,19 @@ tstosbtp /path/to/textpools-en/ /path/to/textpools-pt/ /path/to/textpools-fr/
 tstosbtp -r /path/to/textpools-en/ /path/to/textpools-pt/ /path/to/textpools-fr/
 ```
 
+This command also works recursively, searching down a directory tree for the sbtp/xml files.
+Suppose for example that the directories textpools-en/, textpools-pt/ and textpools-fr/ are
+within a directory called textpools/, then the following commands would have the same effects
+as the previous ones:
+
+```shell
+tstosbtp /path/to/textpools/
+```
+
+```shell
+tstosbtp -r /path/to/textpools/
+```
+
 ## Keeping original files
 
 By default the tool will delete the original files after conversion. For example, if you are converting from
