@@ -130,9 +130,6 @@ def main():
 
                     # If this xml file is not valid.
                     if root.tag != "sbtp":
-                        print(
-                            f"[!] Warning! The file {file.name} is not a eligible xml file for conversion."
-                        )
                         continue
 
                     newfile = Path(file.parent, file.stem + f".{ext[1]}")
