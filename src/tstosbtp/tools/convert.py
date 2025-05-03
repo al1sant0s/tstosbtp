@@ -79,8 +79,8 @@ def main():
 
     for directory in directories:
         # Process the files.
-        for file in directory.glob(f"**/*.{ext[0]}"):
-            if args.reverse is False:
+        if args.reverse is False:
+            for file in directory.glob(f"**/*.{ext[0]}"):
                 with open(file, "rb") as f:
                     if f.read(6) == b"\x53\x42\x54\x50\x01\x00":
                         # Prepare xml tree.
@@ -124,7 +124,8 @@ def main():
                 if args.keep is False:
                     os.remove(file)
 
-            else:
+        else:
+            for file in directory.glob(f"**/*.{ext[0]}"):
                 with open(file, "rb") as f:
                     root = ET.fromstring(f.read().decode("utf8"))
 
