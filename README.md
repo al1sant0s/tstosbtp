@@ -1,6 +1,6 @@
 # Convert TSTO textpool files
 
-This tool allows you to convert sbtp (textpool) files to xml files back and forth from
+This tool allows you to convert sbtp/btp (textpool) files to xml files back and forth from
 the game 'The Simpsons: Tapped Out'.
 
 ## Installation
@@ -37,14 +37,14 @@ That means the converted files will replace their correspondent original files.
 
 ## Converting files
 
-To convert from sbtp to xml use the following command:
+To convert from sbtp/btp to xml use the following command:
 
 ```shell
 tstosbtp /path/to/textpools/
 ```
 
 You can now edit the contents of the xml files. Once you are done and wants to
-convert files back from xml to sbtp, perform the following command:
+convert files back from xml to sbtp/btp, perform the following command:
 
 ```shell
 tstosbtp -r /path/to/textpools/
@@ -60,7 +60,7 @@ tstosbtp /path/to/textpools-en/ /path/to/textpools-pt/ /path/to/textpools-fr/
 tstosbtp -r /path/to/textpools-en/ /path/to/textpools-pt/ /path/to/textpools-fr/
 ```
 
-This command also works recursively, searching down a directory tree for the sbtp/xml files.
+This command also works recursively, searching down a directory tree for the sbtp/btp/xml files.
 Suppose for example that the directories textpools-en/, textpools-pt/ and textpools-fr/ are
 within a directory called textpools/, then the following commands would have the same effects
 as the previous ones:
@@ -76,7 +76,7 @@ tstosbtp -r /path/to/textpools/
 ## Keeping original files
 
 By default the tool will delete the original files after conversion. For example, if you are converting from
-sbtp to xml, after the xml files get created, the original sbtp files are removed. To prevent this behaviour
+sbtp/btp to xml, after the xml files get created, the original sbtp/btp files are removed. To prevent this behaviour
 you can use -k argument.
 
 ```shell
