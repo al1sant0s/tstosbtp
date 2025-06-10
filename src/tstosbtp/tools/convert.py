@@ -2,6 +2,7 @@ import argparse
 import xml.etree.ElementTree as ET
 import os
 from pathlib import Path
+from natsort import natsorted
 
 
 def read_bytestr(file_descriptor, n):
@@ -19,7 +20,6 @@ def write_str_to_file(file_descriptor, str_name, bytelen=1, null_terminated=Fals
 
     if null_terminated is True:
         file_descriptor.write(b"\x00")
-
 
 
 def main():
@@ -69,21 +69,33 @@ def main():
     ext_dest = [item for item in ext[1]]
 
     # Get a flat list of files.
-    files = [directory for glob in [Path(directory).glob(f"**/*.{item}") for item in ext_origin for directory in directories] for directory in glob]
+    files = [
+        directory
+        for glob in [
+            Path(directory).glob(f"**/*.{item}")
+            for item in ext_origin
+            for directory in directories
+        ]
+        for directory in glob
+    ]
 
     # Get total of files to convert.
     total = len(files)
 
     if total == 0:
-        print(f"\n\n(!) No {"/".join(ext_origin)} files found in any of the specified directories!")
+        print(
+            f"\n\n(!) No {'/'.join(ext_origin)} files found in any of the specified directories!"
+        )
         print("    If you need help, execute the following command:\n")
         print("(?) tstosbtp --help\n\n")
         return
 
     print("\n\n--- TEXTPOOL CONVERTER ---\n\n")
-    print(f" * Operation: {"/".join(ext_origin).upper()} => {"/".join(ext_dest).upper()}")
+    print(
+        f" * Operation: {'/'.join(ext_origin).upper()} => {'/'.join(ext_dest).upper()}"
+    )
     print(f" * Files: {total}")
-    print(f" * Keep original files: {"Yes!" if args.keep is True else "No!"}\n")
+    print(f" * Keep original files: {'Yes!' if args.keep is True else 'No!'}\n")
 
     # Process the files.
     if args.reverse is False:
@@ -91,33 +103,43 @@ def main():
             if file.suffix == ".sbtp":
                 with open(file, "rb") as f:
                     if f.read(6) == b"\x53\x42\x54\x50\x01\x00":
-                        # Prepare xml tree.
-                        root = ET.Element("sbtp")
-                        tree = ET.ElementTree(root)
-
                         # Start reading everything.
+                        data = dict()
                         while True:
                             strlen = f.read(1)
                             if strlen == b"":
                                 break
 
-                            prefix = ET.SubElement(
-                                root,
-                                "group",
-                                {"prefix": read_bytestr(f, int.from_bytes(strlen))},
-                            )
+                            # Add prefix. Precede it with _ to avoid empty keys in dictionary.
+                            prefix_key = "_" + read_bytestr(f, int.from_bytes(strlen))
+                            data[prefix_key] = dict()
 
                             suffixes = int.from_bytes(f.read(4))
 
                             for _ in range(suffixes):
                                 strlen = int.from_bytes(f.read(1))
-                                item = ET.SubElement(
-                                    prefix, "item", {"suffix": read_bytestr(f, strlen)}
-                                )
-
+                                suffix = read_bytestr(f, strlen)
                                 strlen = int.from_bytes(f.read(4))
                                 text = read_bytestr(f, strlen)
-                                item.text = text
+
+                                # Add suffix. Precede it with _ to avoid empty keys in dictionary.
+                                suffix_key = "_" + suffix
+                                data[prefix_key][suffix_key] = text
+
+                        # Prepare xml tree.
+                        root = ET.Element("sbtp")
+                        tree = ET.ElementTree(root)
+
+                        # Build tree in alphabetical order according to prefixes and suffixes.
+                        for prefix_key in natsorted(data.keys()):
+                            group = ET.SubElement(
+                                root, "group", {"prefix": prefix_key[1:]}
+                            )
+                            for suffix_key in natsorted(data[prefix_key].keys()):
+                                item = ET.SubElement(
+                                    group, "item", {"suffix": suffix_key[1:]}
+                                )
+                                item.text = data[prefix_key][suffix_key]
 
                         # Store tree.
                         ET.indent(tree, " " * args.indent)
@@ -128,10 +150,6 @@ def main():
             elif file.suffix == ".btp":
                 with open(file, "rb") as f:
                     if f.read(8) == b"\x42\x54\x50\x00\x04\x00\x10\x00":
-                        # Prepare xml tree.
-                        root = ET.Element("btp")
-                        tree = ET.ElementTree(root)
-
                         # We are making the assumption the file size is written as 32 bit format.
                         # Ignore 32 bit file size.
                         f.read(4)
@@ -141,18 +159,31 @@ def main():
                         # Ignore maximum block size.
                         f.read(4)
 
+                        data = dict()
+
                         for _ in range(items):
                             # Ignore size of the block.
                             f.read(4)
 
                             strlen = int.from_bytes(f.read(1))
-                            item = ET.SubElement(
-                                root, "item", {"suffix": read_bytestr(f, strlen)}
-                            )
+                            suffix = read_bytestr(f, strlen)
                             strlen = int.from_bytes(f.read(4))
                             text = read_bytestr(f, strlen)
-                            item.text = text
 
+                            # Add suffix. Precede it with _ to avoid empty keys in dictionary.
+                            suffix_key = "_" + suffix
+                            data[suffix_key] = text
+
+                        # Prepare xml tree.
+                        root = ET.Element("btp")
+                        tree = ET.ElementTree(root)
+
+                        # Build tree in alphabetical order according to suffixes.
+                        for suffix_key in natsorted(data.keys()):
+                            item = ET.SubElement(
+                                root, "item", {"suffix": suffix_key[1:]}
+                            )
+                            item.text = data[suffix_key]
 
                         # Store tree.
                         ET.indent(tree, " " * args.indent)
@@ -226,7 +257,11 @@ def main():
                                 suffix_name = "" if suffix_name is None else suffix_name
                                 text = item.text
                                 text = "" if text is None else text
-                                block_size = len(suffix_name.encode(("utf8"))) + len(text.encode("utf8")) + 7
+                                block_size = (
+                                    len(suffix_name.encode(("utf8")))
+                                    + len(text.encode("utf8"))
+                                    + 7
+                                )
                                 max_block_size = max(max_block_size, block_size)
 
                                 # Write block size.
@@ -235,7 +270,6 @@ def main():
                                 # Write suffix name and suffix text.
                                 write_str_to_file(f, suffix_name, null_terminated=True)
                                 write_str_to_file(f, text, 4, True)
-
 
                             # Write file size.
                             file_size = f.tell()
@@ -255,6 +289,4 @@ def main():
             if args.keep is False:
                 os.remove(file)
 
-
     print("\n\n--- JOB COMPLETED!!! ---\n\n")
-

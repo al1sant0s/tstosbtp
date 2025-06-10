@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tstosbtp"
-version = "0.0.1.7"
+version = "0.0.1.8"
 authors = [
   { name="al1sant0s", email="cnctalissonsantos@gmail.com" },
 ]
@@ -16,7 +16,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = []
+dependencies = ["natsort"]
 
 [project.scripts]
 tstosbtp = "tstosbtp.tools.convert:main"
