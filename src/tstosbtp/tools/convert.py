@@ -111,20 +111,19 @@ def main():
                                 if strlen == b"":
                                     break
 
-                                # Add prefix. Precede it with _ to avoid empty keys in dictionary.
-                                prefix_key = "_" + read_bytestr(f, int.from_bytes(strlen))
+                                # Add prefix.
+                                prefix_key = read_bytestr(f, int.from_bytes(strlen))
                                 data[prefix_key] = dict()
 
                                 suffixes = int.from_bytes(f.read(4))
 
                                 for _ in range(suffixes):
                                     strlen = int.from_bytes(f.read(1))
-                                    suffix = read_bytestr(f, strlen)
+                                    suffix_key = read_bytestr(f, strlen)
                                     strlen = int.from_bytes(f.read(4))
                                     text = read_bytestr(f, strlen)
 
-                                    # Add suffix. Precede it with _ to avoid empty keys in dictionary.
-                                    suffix_key = "_" + suffix
+                                    # Add suffix within this group.
                                     data[prefix_key][suffix_key] = text
 
                             # Prepare xml tree.
@@ -134,11 +133,11 @@ def main():
                             # Build tree in alphabetical order according to prefixes and suffixes.
                             for prefix_key in natsorted(data.keys()):
                                 group = ET.SubElement(
-                                    root, "group", {"prefix": prefix_key[1:]}
+                                    root, "group", {"prefix": prefix_key}
                                 )
                                 for suffix_key in natsorted(data[prefix_key].keys()):
                                     item = ET.SubElement(
-                                        group, "item", {"suffix": suffix_key[1:]}
+                                        group, "item", {"suffix": suffix_key}
                                     )
                                     item.text = data[prefix_key][suffix_key]
 
@@ -147,6 +146,12 @@ def main():
                             tree.write(
                                 Path(file.parent, file.stem + ".xml"), encoding="utf8"
                             )
+
+
+                    # Only keep original files if requested.
+                    if args.keep is False:
+                        os.remove(file)
+
 
                 elif file.suffix == ".btp":
                     with open(file, "rb") as f:
@@ -167,12 +172,11 @@ def main():
                                 f.read(4)
 
                                 strlen = int.from_bytes(f.read(1))
-                                suffix = read_bytestr(f, strlen)
+                                suffix_key = read_bytestr(f, strlen)
                                 strlen = int.from_bytes(f.read(4))
                                 text = read_bytestr(f, strlen)
 
-                                # Add suffix. Precede it with _ to avoid empty keys in dictionary.
-                                suffix_key = "_" + suffix
+                                # Add suffix.
                                 data[suffix_key] = text
 
                             # Prepare xml tree.
@@ -192,12 +196,15 @@ def main():
                                 Path(file.parent, file.stem + ".xml"), encoding="utf8"
                             )
 
+
+                    # Only keep original files if requested.
+                    if args.keep is False:
+                        os.remove(file)
+
+
                 else:
                     continue
 
-                # Only keep original files if requested.
-                if args.keep is False:
-                    os.remove(file)
 
             except:
                 print(f"ERROR! File {file.name} could not be converted!")
@@ -234,6 +241,12 @@ def main():
                                         text = item.text
                                         text = "" if text is None else text
                                         write_str_to_file(f, text, 4)
+
+
+                            # Only keep original files if requested.
+                            if args.keep is False:
+                                os.remove(file)
+
 
                         elif root.tag == "btp":
                             with open(newfile, "wb") as f:
@@ -285,14 +298,19 @@ def main():
                                 f.seek(max_block_size_seek)
                                 f.write(max_block_size.to_bytes(4))
 
+
+                            # Only keep original files if requested.
+                            if args.keep is False:
+                                os.remove(file)
+
+
                         else:
                             continue
+
+
                 else:
                     continue
 
-                # Only keep original files if requested.
-                if args.keep is False:
-                    os.remove(file)
 
             except:
                 print(f"ERROR! File {file.name} could not be converted!")
