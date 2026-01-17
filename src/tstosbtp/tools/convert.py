@@ -206,8 +206,8 @@ def main():
                     continue
 
 
-            except:
-                print(f"ERROR! File {file.name} could not be converted!")
+            except Exception as e:
+                print(f"ERROR! File {file.name} could not be converted! Reason: {e}")
 
     else:
         for file in files:
@@ -312,7 +312,7 @@ def main():
                     continue
 
 
-            except:
-                print(f"ERROR! File {file.name} could not be converted!")
+            except Exception as e:
+                print(f"ERROR! File {file.name} could not be converted! Reason: {e}")
 
     print("\n\n--- JOB COMPLETED!!! ---\n\n")
