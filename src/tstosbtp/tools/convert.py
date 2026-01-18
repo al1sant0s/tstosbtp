@@ -216,96 +216,96 @@ def main():
                     with open(file, "rb") as f:
                         root = ET.fromstring(f.read().decode("utf8"))
 
-                        # Check type of revert conversion.
-                        newfile = Path(file.parent, file.stem + f".{root.tag}")
-                        if root.tag == "sbtp":
-                            with open(newfile, "wb") as f:
-                                # Write signature.
-                                f.write(b"\x53\x42\x54\x50\x01\x00")
+                    # Check type of revert conversion.
+                    newfile = Path(file.parent, file.stem + f".{root.tag}")
+                    if root.tag == "sbtp":
+                        with open(newfile, "wb") as f:
+                            # Write signature.
+                            f.write(b"\x53\x42\x54\x50\x01\x00")
 
-                                for group in root.findall("*"):
-                                    # Write prefix.
-                                    prefix = group.get("prefix")
-                                    write_str_to_file(f, prefix)
-
-                                    # Number of suffixes.
-                                    items = list(group.findall("*"))
-                                    f.write(len(items).to_bytes(4))
-
-                                    # Write suffixes.
-                                    for item in items:
-                                        # Suffix name.
-                                        write_str_to_file(f, item.get("suffix"))
-
-                                        # Suffix content.
-                                        text = item.text
-                                        text = "" if text is None else text
-                                        write_str_to_file(f, text, 4)
-
-
-                            # Only keep original files if requested.
-                            if args.keep is False:
-                                os.remove(file)
-
-
-                        elif root.tag == "btp":
-                            with open(newfile, "wb") as f:
-                                # Write signature and unknown part.
-                                f.write(b"\x42\x54\x50\x00\x04\x00\x10\x00")
-
-                                # Reserve 32 bits for file size.
-                                # Fill it up later!
-                                file_size_seek = f.tell()
-                                f.write(b"\x00\x00\x00\x00")
+                            for group in root.findall("*"):
+                                # Write prefix.
+                                prefix = group.get("prefix")
+                                write_str_to_file(f, prefix)
 
                                 # Number of suffixes.
-                                items = list(root.findall("item"))
+                                items = list(group.findall("*"))
                                 f.write(len(items).to_bytes(4))
-
-                                # Maximum block size.
-                                # Fill it up later.
-                                max_block_size_seek = f.tell()
-                                f.write(b"\x00\x00\x00\x00")
-                                max_block_size = 0
 
                                 # Write suffixes.
                                 for item in items:
-                                    # Get suffix content.
-                                    suffix_name = item.get("suffix")
-                                    suffix_name = "" if suffix_name is None else suffix_name
+                                    # Suffix name.
+                                    write_str_to_file(f, item.get("suffix"))
+
+                                    # Suffix content.
                                     text = item.text
                                     text = "" if text is None else text
-                                    block_size = (
-                                        len(suffix_name.encode(("utf8")))
-                                        + len(text.encode("utf8"))
-                                        + 7
-                                    )
-                                    max_block_size = max(max_block_size, block_size)
-
-                                    # Write block size.
-                                    f.write(block_size.to_bytes(4))
-
-                                    # Write suffix name and suffix text.
-                                    write_str_to_file(f, suffix_name, null_terminated=True)
-                                    write_str_to_file(f, text, 4, True)
-
-                                # Write file size.
-                                file_size = f.tell()
-                                f.seek(file_size_seek)
-                                f.write(file_size.to_bytes(4))
-
-                                # Write maximum block size.
-                                f.seek(max_block_size_seek)
-                                f.write(max_block_size.to_bytes(4))
+                                    write_str_to_file(f, text, 4)
 
 
-                            # Only keep original files if requested.
-                            if args.keep is False:
-                                os.remove(file)
+                        # Only keep original files if requested.
+                        if args.keep is False:
+                            os.remove(file)
 
 
-                        else:
-                            continue
+                    elif root.tag == "btp":
+                        with open(newfile, "wb") as f:
+                            # Write signature and unknown part.
+                            f.write(b"\x42\x54\x50\x00\x04\x00\x10\x00")
+
+                            # Reserve 32 bits for file size.
+                            # Fill it up later!
+                            file_size_seek = f.tell()
+                            f.write(b"\x00\x00\x00\x00")
+
+                            # Number of suffixes.
+                            items = list(root.findall("item"))
+                            f.write(len(items).to_bytes(4))
+
+                            # Maximum block size.
+                            # Fill it up later.
+                            max_block_size_seek = f.tell()
+                            f.write(b"\x00\x00\x00\x00")
+                            max_block_size = 0
+
+                            # Write suffixes.
+                            for item in items:
+                                # Get suffix content.
+                                suffix_name = item.get("suffix")
+                                suffix_name = "" if suffix_name is None else suffix_name
+                                text = item.text
+                                text = "" if text is None else text
+                                block_size = (
+                                    len(suffix_name.encode(("utf8")))
+                                    + len(text.encode("utf8"))
+                                    + 7
+                                )
+                                max_block_size = max(max_block_size, block_size)
+
+                                # Write block size.
+                                f.write(block_size.to_bytes(4))
+
+                                # Write suffix name and suffix text.
+                                write_str_to_file(f, suffix_name, null_terminated=True)
+                                write_str_to_file(f, text, 4, True)
+
+                            # Write file size.
+                            file_size = f.tell()
+                            f.seek(file_size_seek)
+                            f.write(file_size.to_bytes(4))
+
+                            # Write maximum block size.
+                            f.seek(max_block_size_seek)
+                            f.write(max_block_size.to_bytes(4))
+
+
+                        # Only keep original files if requested.
+                        if args.keep is False:
+                            os.remove(file)
+
+
+                    else:
+                        continue
 
 
                 else:
